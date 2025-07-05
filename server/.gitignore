@@ -1,0 +1,39 @@
+# Node dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Prisma client
+generated/prisma/
+database/
+.prisma/
+
+# TypeScript
+*.tsbuildinfo
+
+# Env files
+.env
+.env.*
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE settings
+.vscode/
+.idea/
+
+# Coverage reports
+coverage/
+
+# Misc
+*.tgz
