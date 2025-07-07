@@ -1,4 +1,5 @@
-import { deleteMeasurementById, deleteMeasurementsByUserId, getAllMeasurements, getMeasurementById, getMeasurementsByDateRangeAndUserId, getMeasurementsByUserId, getUserMeasurementByDate } from '@services/measurements.services'
+import { deleteMeasurementById, deleteMeasurementsByUserId, getAllMeasurements, getMeasurementById, getMeasurementsByDateRangeAndUserId, getMeasurementsByUserId, getUserMeasurementByDate, updateMeasurementById } from '@services/measurements.services'
+import { parseValidDate } from '@utils/date.utils'
 import { Request, Response } from 'express'
 
 //  #########
@@ -8,7 +9,7 @@ import { Request, Response } from 'express'
 // Obtain all measurements
 export const getAllMeasurementsController = async (_req: Request, res: Response): Promise<any> => {
   try {
-    const measurements = await getAllMeasurements
+    const measurements = getAllMeasurements
     res.status(200).json(measurements)
   } catch (error) {
     if (error instanceof Error) {
@@ -107,7 +108,7 @@ export const deleteMeasurementsByUserIdController = async (req: Request, res: Re
   }
 }
 
-// Delete one measurement
+// Delete a measurement
 export const deleteMeasurementByIdController = async (req: Request, res: Response): Promise<any> => {
   try {
     const measurement = await deleteMeasurementById(parseInt(req.params.id))
@@ -120,3 +121,42 @@ export const deleteMeasurementByIdController = async (req: Request, res: Respons
     }
   }
 }
+
+// PUT
+
+// Update a measurement
+export const updateMeasurementByIdController = async (req: Request, res: Response): Promise<void> => {
+  const { id } = req.params
+  let { weight, waist, neck, arm, thigh, date } = req.body
+  if (date !== undefined) date = parseValidDate(date)
+
+  try {
+    const updatedMeasurement = await updateMeasurementById({ id: +id, weight, waist, neck, arm, thigh, date })
+    res.status(200).json(updatedMeasurement)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+
+/* Create a measurement
+export const createMeasurementController = async (req: Request, res: Response): Promise<void> => {
+  const { userId } = req.params
+  let { weight, waist, neck, arm, thigh, date } = req.body
+  if (date !== undefined) date = parseValidDate(date)
+
+  try {
+    const measurement = await createMeasurement({
+      weight: Number(weight),
+      waist: waist !== undefined ? Number(waist) : null,
+      neck: neck !== undefined ? Number(neck) : null,
+      arm: arm !== undefined ? Number(arm) : null,
+      thigh: thigh !== undefined ? Number(thigh) : null,
+      date,
+      userId: Number(userId)
+    })
+    res.status(200).json(measurement)
+  } catch (error: any) {
+    res.status(400).json({ message: error.message })
+  }
+}
+*/

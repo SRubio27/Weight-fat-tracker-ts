@@ -1,12 +1,31 @@
+/* eslint-disable no-multi-spaces */
+import { Measurement } from '@prisma/client'
 import { prisma } from '../db'
+/*
+// #### GET
+getAllMeasurements                    -> Devuelve todas las mediciones (función sin filtros)
+getMeasurementsByUserId               -> Devuelve mediciones de un usuario (requiere ID y validación de existencia)
+getMeasurementById                    -> Devuelve una medición concreta por ID
+getUserMeasurementByDate              -> Devuelve mediciones de un usuario en una fecha exacta
+getMeasurementsByDateRangeAndUserId   -> Devuelve mediciones entre fechas (de un usuario)
 
+// #### DELETE
+deleteMeasurementsByUserId            -> Elimina todas las mediciones de un usuario
+deleteMeasurementById                 -> Elimina una medición específica
+
+// #### UTILS
+existingUserById                      -> Comprueba si existe un usuario por ID
+
+*/
 //  #########
 //  ###GET###
 //  #########
 
 // Obtain all measurements
-export const getAllMeasurements = prisma.measurement.findMany()
-
+export const getAllMeasurements = async (): Promise<any> => {
+  const measurements = await prisma.measurement.findMany()
+  return measurements
+}
 // Obtain all measurements of one user
 export const getMeasurementsByUserId = async (userId: number): Promise<any> => {
   if (!await existingUserById(userId)) {
@@ -116,19 +135,77 @@ export const deleteMeasurementsByUserId = async (userId: number): Promise<any> =
 
 // Delete one measurement
 export const deleteMeasurementById = async (id: number): Promise<any> => {
-  const measurement = await prisma.measurement.delete({
-    where: { id }
-  })
-  if (measurement === null) {
-    throw new Error('This measurement id doesnt exist.')
+  try {
+    const measurement = await prisma.measurement.delete({
+      where: { id }
+    })
+    return measurement
+  } catch (error: any) {
+    // Puedes manejar el error aquí o lanzarlo
+    throw new Error('This measurement id does not exist.')
   }
-
-  return measurement
 }
 
+export const updateMeasurementById = async ({ id, weight, waist, neck, arm, thigh, date  }: Omit<Measurement, 'userId'>): Promise<Measurement> => {
+  // This Measurement exists?
+  if (!await existingMeasurement(id)) {
+    throw new Error('This measurement does not exist')
+  }
+
+  // Object for update
+  const updateData: any = {}
+
+  if (weight !== undefined) updateData.weight = weight
+  if (weight !== undefined) updateData.weight = weight
+  if (waist !== undefined) updateData.waist = waist
+  if (neck !== undefined) updateData.neck = neck
+  if (arm !== undefined) updateData.arm = arm
+  if (thigh !== undefined) updateData.thigh = thigh
+  if (date !== undefined) updateData.date = date
+  try {
+    const updatedMeasurement = await prisma.measurement.update({
+      where: { id },
+      data: updateData
+    })
+    return updatedMeasurement
+  } catch (error) {
+    throw new Error('The measurement could not be updated.')
+  }
+}
+
+/* Create measurement
+export const createMeasurement = async ({ weight, waist, neck, arm, thigh, date, userId  }: Omit<Measurement, 'id'>): Promise<Measurement> => {
+  // Verificar si ya existe una medición para este usuario en esa fecha
+  const existingMeasurement = await prisma.measurement.findUnique({
+    where: {
+      date_userId: { date, userId } // si tienes @@unique([date, userId])
+    }
+  })
+
+  if (existingMeasurement != null) {
+    // Si existe, actualiza la medición
+    return await updateMeasurementById({ id: existingMeasurement.id, weight, waist, neck, arm, thigh, date })
+  }
+  const newMeasurement = await prisma.measurement.create({
+    data: { weight, waist, neck, arm, thigh, date, userId }
+  })
+
+  return newMeasurement
+}
+*/
+
+// UTILS
 // This user exists?
 const existingUserById = async (id: number): Promise<boolean> => {
-  if ((await prisma.user.findUnique({ where: { id } })) != null) {
+  if ((await prisma.user.findUnique({ where: { id } })) !== null) {
+    return true
+  }
+
+  return false
+}
+
+export const existingMeasurement = async (id: number): Promise<boolean> => {
+  if ((await prisma.measurement.findUnique({ where: { id } })) !== null) {
     return true
   }
 
